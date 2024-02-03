@@ -9,6 +9,7 @@ TableCreateDialog::TableCreateDialog(QWidget *parent)
 {
     ui->setupUi(this);
     ui->vn_spinBox->hide();
+    ui->tablename_lineEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("[a-z]+"), this));
 }
 
 TableCreateDialog::~TableCreateDialog()
