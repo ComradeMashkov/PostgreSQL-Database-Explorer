@@ -25,6 +25,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
         authdialog.h authdialog.cpp authdialog.ui
         tablecreatedialog.h tablecreatedialog.cpp tablecreatedialog.ui
+        tabledropdialog.h tabledropdialog.cpp tabledropdialog.ui
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET DatabaseExplorer APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

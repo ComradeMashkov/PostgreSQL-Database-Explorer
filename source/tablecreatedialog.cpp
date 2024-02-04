@@ -22,7 +22,7 @@ void TableCreateDialog::on_buttonBox_accepted()
     if (ui->tablename_lineEdit->text().isEmpty())
     {
         QMessageBox messageBox;
-        messageBox.critical(0, "Error", "Table name shouldn't be empty");
+        messageBox.critical(0, "Error", "ERROR: table name shouldn't be empty");
         messageBox.setFixedSize(500, 200);
         return;
     }
@@ -78,7 +78,7 @@ void TableCreateDialog::on_add_pushButton_clicked()
     if (ui->fieldname_lineEdit->text().isEmpty() || ui->type_comboBox->currentIndex() == -1)
     {
         QMessageBox messageBox;
-        messageBox.critical(0, "Error", "Variable name or data type shouldn't be empty");
+        messageBox.critical(0, "Error", "ERROR: variable name or data type shouldn't be empty");
         messageBox.setFixedSize(500, 200);
         return;
     }
@@ -86,7 +86,7 @@ void TableCreateDialog::on_add_pushButton_clicked()
     if (field_names.contains(ui->fieldname_lineEdit->text()))
     {
         QMessageBox messageBox;
-        messageBox.critical(0, "Error", "This name has been already taken");
+        messageBox.critical(0, "Error", "ERROR: this name has been already taken");
         messageBox.setFixedSize(500, 200);
         return;
     }

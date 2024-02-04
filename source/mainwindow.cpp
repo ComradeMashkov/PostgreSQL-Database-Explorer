@@ -68,7 +68,7 @@ void MainWindow::on_actionConnect_triggered()
 
     if (!CheckAuthorizationValidity())
     {
-        qDebug() << "Data is empty: specify your authorization parameters.";
+        qDebug() << "ERROR: specify your authorization parameters";
         return;
     }
 
@@ -77,6 +77,7 @@ void MainWindow::on_actionConnect_triggered()
 
 void MainWindow::InitializeTableCreateDialog()
 {
+    tc_dialog = new TableCreateDialog();
     tc_dialog->setModal(true);
     tc_dialog->exec();
 }
@@ -86,7 +87,7 @@ void MainWindow::on_actionCreate_triggered()
 {
     if (c == nullptr)
     {
-        qDebug() << "Connect to a database before creating a table";
+        qDebug() << "ERROR: connect to a database before creating a table";
         return;
     }
 
@@ -121,16 +122,73 @@ void MainWindow::on_actionCreate_triggered()
     create_query += ");";
     create_query.replace(", );", ");");
 
+    delete tc_dialog;
+
     qDebug() << create_query;
 
-    pqxx::work w(*c);
-    w.exec(qPrintable(create_query));
-    w.commit();
+    try
+    {
+        pqxx::work w(*c);
+        w.exec(qPrintable(create_query));
+        w.commit();
+    }
+    catch (const std::exception& e)
+    {
+        qDebug() << e.what();
+        return;
+    }
+}
+
+void MainWindow::InitializeTableDropDialog()
+{
+    td_dialog = new TableDropDialog(tables_names);
+    td_dialog->setModal(true);
+    td_dialog->exec();
 }
 
 
 void MainWindow::on_actionDrop_triggered()
 {
-    // pass
+    if (c == nullptr)
+    {
+        qDebug() << "ERROR: connect to a database before creating a table";
+        return;
+    }
+
+    qDebug() << "Drop button is triggered!";
+
+    pqxx::work w(*c);
+    pqxx::result rows = w.exec("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';");
+    for (const auto& row : rows)
+    {
+        tables_names.insert(QString::fromStdString(row[0].as<std::string>()));
+    }
+    w.commit();
+
+    InitializeTableDropDialog();
+
+    if (td_dialog->result() == QDialog::Rejected)
+    {
+        return;
+    }
+
+    QString drop_query = "DROP TABLE " + td_dialog->table_to_drop + ";";
+    tables_names.remove(td_dialog->table_to_drop);
+
+    qDebug() << drop_query;
+
+    delete td_dialog;
+
+    try
+    {
+        pqxx::work w(*c);
+        w.exec(qPrintable(drop_query));
+        w.commit();
+    }
+    catch (const std::exception& e)
+    {
+        qDebug() << e.what();
+        return;
+    }
 }
 

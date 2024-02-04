@@ -3,6 +3,7 @@
 
 #include "authdialog.h"
 #include "tablecreatedialog.h"
+#include "tabledropdialog.h"
 
 #include <pqxx/pqxx>
 
@@ -33,12 +34,16 @@ private:
     Ui::MainWindow* ui;
     pqxx::connection* c = nullptr;
     AuthDialog* auth_dialog = new AuthDialog();
-    TableCreateDialog* tc_dialog = new TableCreateDialog();
+    TableCreateDialog* tc_dialog = nullptr;
+    TableDropDialog* td_dialog = nullptr;
+
+    QSet<QString> tables_names;
 
     void InitializeAuthDialog();
     void ConnectToDatabase();
     bool CheckAuthorizationValidity();
 
     void InitializeTableCreateDialog();
+    void InitializeTableDropDialog();
 };
 #endif // MAINWINDOW_H
