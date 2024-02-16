@@ -3,8 +3,9 @@
 
 #include <QMessageBox>
 
-TableCreateDialog::TableCreateDialog(QWidget *parent)
-    : QDialog(parent)
+TableCreateDialog::TableCreateDialog(QSet<QString> tables_names, QWidget *parent)
+    : tables_names(tables_names)
+    , QDialog(parent)
     , ui(new Ui::TableCreateDialog)
 {
     ui->setupUi(this);
@@ -28,6 +29,15 @@ void TableCreateDialog::on_buttonBox_accepted()
     }
 
     table_name = ui->tablename_lineEdit->text();
+    if (tables_names.contains(table_name))
+    {
+        QMessageBox messageBox;
+        messageBox.critical(0, "Error", "ERROR: this table name already exists");
+        messageBox.setFixedSize(500, 200);
+        field_names.clear();
+        fields_vec.clear();
+        return;
+    }
 
     close();
     setResult(QDialog::Accepted);

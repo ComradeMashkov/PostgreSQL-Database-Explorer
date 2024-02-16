@@ -73,11 +73,26 @@ void MainWindow::on_actionConnect_triggered()
     }
 
     ConnectToDatabase();
+
+    pqxx::work w(*c);
+    pqxx::result rows = w.exec("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';");
+    for (const auto& row : rows)
+    {
+        tables_names.insert(QString::fromStdString(row[0].as<std::string>()));
+    }
+    w.commit();
+
+    for (const QString& name : std::as_const(tables_names))
+    {
+        ui->select_table_comboBox->addItem(name);
+    }
+
+    ui->select_table_comboBox->setCurrentIndex(-1);
 }
 
 void MainWindow::InitializeTableCreateDialog()
 {
-    tc_dialog = new TableCreateDialog();
+    tc_dialog = new TableCreateDialog(tables_names);
     tc_dialog->setModal(true);
     tc_dialog->exec();
 }
@@ -98,6 +113,9 @@ void MainWindow::on_actionCreate_triggered()
     {
         return;
     }
+
+    tables_names.insert(tc_dialog->table_name);
+    ui->select_table_comboBox->addItem(tc_dialog->table_name);
 
     QString create_query = "CREATE TABLE " + tc_dialog->table_name + " (";
     for (int i = 0; i < tc_dialog->fields_vec.length(); ++i)
@@ -157,20 +175,16 @@ void MainWindow::on_actionDrop_triggered()
 
     qDebug() << "Drop button is triggered!";
 
-    pqxx::work w(*c);
-    pqxx::result rows = w.exec("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';");
-    for (const auto& row : rows)
-    {
-        tables_names.insert(QString::fromStdString(row[0].as<std::string>()));
-    }
-    w.commit();
-
     InitializeTableDropDialog();
 
     if (td_dialog->result() == QDialog::Rejected)
     {
         return;
     }
+
+    ui->select_table_comboBox->setCurrentText(td_dialog->table_to_drop);
+    ui->select_table_comboBox->removeItem(ui->select_table_comboBox->currentIndex());
+    ui->select_table_comboBox->setCurrentIndex(-1);
 
     QString drop_query = "DROP TABLE " + td_dialog->table_to_drop + ";";
     tables_names.remove(td_dialog->table_to_drop);
@@ -190,5 +204,58 @@ void MainWindow::on_actionDrop_triggered()
         qDebug() << e.what();
         return;
     }
+}
+
+void MainWindow::on_actionAdd_triggered()
+{
+
+}
+
+void MainWindow::on_select_table_comboBox_textActivated(const QString &arg1)
+{
+    QString get_columns_query = "SELECT column_name FROM information_schema.columns WHERE table_name = '" + arg1 + "' ORDER BY ordinal_position;";
+    pqxx::work w(*c);
+    pqxx::result columns = w.exec(qPrintable(get_columns_query));
+
+    QStringList header_labels;
+
+    for (const auto& column : columns)
+    {
+        header_labels << QString::fromStdString(column[0].as<std::string>());
+    }
+
+    QString get_rows_query = "SELECT * FROM " + arg1 + ";";
+    pqxx::result rows = w.exec(qPrintable(get_rows_query));
+
+    int column_count = 0;
+    int row_count = 0;
+    ui->tableWidget->setColumnCount(columns.size());
+    ui->tableWidget->setRowCount(rows.size());
+
+    for (const auto& row : rows)
+    {
+        for (const auto& field : row)
+        {
+            QTableWidgetItem* item = new QTableWidgetItem(field.c_str());
+            ui->tableWidget->setItem(row_count, column_count++, item);
+        }
+        column_count = 0;
+        ++row_count;
+    }
+
+    w.commit();
+
+    // ui->tableWidget->setColumnCount(10);
+    // ui->tableWidget->setRowCount(7000);
+    // for (int row = 0; row < 7000; ++row)
+    // {
+    //     for (int column = 0; column < 10; ++column)
+    //     {
+    //         QTableWidgetItem *item1 = new QTableWidgetItem("Бананчики");
+    //         ui->tableWidget->setItem(row, column, item1);
+    //     }
+    // }
+
+    ui->tableWidget->setHorizontalHeaderLabels(header_labels);
 }
 

@@ -14,7 +14,7 @@ class TableCreateDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit TableCreateDialog(QWidget *parent = nullptr);
+    explicit TableCreateDialog(QSet<QString> tables_names, QWidget *parent = nullptr);
     ~TableCreateDialog();
 
 private slots:
@@ -42,6 +42,8 @@ private:
         QString params { "" };
     };
     QVector<FieldStats> fields_vec;
+
+    QSet<QString> tables_names;
 };
 
 #endif // TABLECREATEDIALOG_H

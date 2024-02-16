@@ -30,6 +30,10 @@ private slots:
 
     void on_actionDrop_triggered();
 
+    void on_actionAdd_triggered();
+
+    void on_select_table_comboBox_textActivated(const QString &arg1);
+
 private:
     Ui::MainWindow* ui;
     pqxx::connection* c = nullptr;
